@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="CleanAspireApp.Web/CleanAspireApp.Web.csproj" Id="0b8605ae-2ca8-47b7-bf9f-5e10eeec7449" />
+    <Project Path="src\Application\Application.csproj" />
+    <Project Path="src\Domain\Domain.csproj" />
+    <Project Path="src\Infrastructure\Infrastructure.csproj" />
+    <Project Path="src\WebApi\WebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\Architecture.Tests\Architecture.Tests.csproj" />
+    <Project Path="tests\Domain.UnitTests\Domain.UnitTests.csproj" />
+    <Project Path="tests\WebApi.IntegrationTests\WebApi.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools\AppHost\AppHost.csproj" />
+    <Project Path="tools\MigrationService\MigrationService.csproj" />
+  </Folder>
+</Solution>
