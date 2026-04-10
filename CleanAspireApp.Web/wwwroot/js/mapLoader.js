@@ -151,15 +151,6 @@ export function createCustomUI(view) {
 
 }
 
-export function showLoader() {
-    window.loader.active = true;
-}
-
-export function hideLoader() {
-    window.loader.active = false;
-}
-
-
 /**
  * Initialize and configure the ArcGIS map with custom layers
  

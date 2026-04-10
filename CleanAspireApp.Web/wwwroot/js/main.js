@@ -9,11 +9,6 @@ export async function initializeMapWrapper() {
         window.map = map;
         window.view = view;
 
-
-
-
-
-
         if (savedState) {
             view.goTo(savedState);
         }
