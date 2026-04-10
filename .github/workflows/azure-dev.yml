@@ -16,6 +16,7 @@ jobs:
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
 
     steps:
       - name: Checkout
@@ -35,7 +36,15 @@ jobs:
             --client-id "$AZURE_CLIENT_ID" \
             --federated-credential-provider github \
             --tenant-id "$AZURE_TENANT_ID"
+      
+      - name: Create azd env
+        run: azd env new prod --no-prompt
+        working-directory: ./tools/AppHost
 
+      - name: Set location
+        run: azd env set AZURE_LOCATION $AZURE_LOCATION
+        working-directory: ./tools/AppHost
+        
       - name: Provision Infrastructure
         run: azd provision --no-prompt
         working-directory: ./tools/AppHost
