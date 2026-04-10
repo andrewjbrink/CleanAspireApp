@@ -44,7 +44,7 @@ jobs:
         shell: pwsh
 
       - name: Init
-        run: azd init --no-prompt
+        run: azd init 
         
       - name: Provision Infrastructure
         run: azd provision --no-prompt
