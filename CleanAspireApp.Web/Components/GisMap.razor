@@ -6,7 +6,7 @@
 @inject JavaHelper javaHelper
 
 
-@* @implements IAsyncDisposable *@
+@implements IAsyncDisposable
 
 <div id="status"></div>
 <div id="viewDiv" />
@@ -27,16 +27,16 @@
     }
 
 
-    // public async ValueTask DisposeAsync()
-    // {
-    //     if (module != null)
-    //     {
-    //         // await module.InvokeVoidAsync("saveMapState");
-    //         // await module.InvokeVoidAsync("saveGraphics");
+    public async ValueTask DisposeAsync()
+    {
+        if (module != null)
+        {
+            // await module.InvokeVoidAsync("saveMapState");
+            // await module.InvokeVoidAsync("saveGraphics");
 
-    //         // await module.DisposeAsync();
-    //     }
-    // }
+            await module.DisposeAsync();
+        }
+    }
 }
 <style>
     #viewDiv {
