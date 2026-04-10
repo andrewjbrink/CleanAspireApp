@@ -300,7 +300,7 @@ async function initializeMap() {
         printExpander.expandTooltip = "Show print";
         printExpander.collapseTooltip = "Hide print";
         printExpander.appendChild(printComponent);
-        view.ui.add(printExpander, { position: "bottom-right", index: 0 });
+        /*view.ui.add(printExpander, { position: "bottom-right", index: 0 });*/
 
         const messagesDiv = containerInfo.querySelector("#messages");
 
