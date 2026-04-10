@@ -1,0 +1,43 @@
+name: Frontend WebApp CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "CleanAspireApp.Web/**" #WebFrontEnd/WebFrontEnd.csproj MudBlazorWebApp
+      - ".github/workflows/frontend-webapp.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      APPLICATION_NAME: "app-wowow-web"
+      DOTNET_VERSION: "10.0.x" 
+      PROJECT_PATH: "CleanAspireApp.Web/CleanAspireApp.Web.csproj"  #CleanAspireApp.Web/CleanAspireApp.Web.csproj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore $PROJECT_PATH
+
+      - name: Build
+        run: dotnet build $PROJECT_PATH --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish $PROJECT_PATH -c Release -o ./publish --self-contained true --runtime linux-x64
+
+      - name: Deploy to Azure Web App (Frontend)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APPLICATION_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONTEND }}
+          package: ./publish

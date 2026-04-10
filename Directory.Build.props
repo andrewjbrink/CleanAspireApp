@@ -20,5 +20,9 @@
     <!-- Disable logging warning -->
     <NoWarn>$(NoWarn);CA1873</NoWarn>
 
+    <!-- Disable logging Illegal Attribute -->
+    <NoWarn>$(NoWarn);MUD0002</NoWarn>
+    
+
   </PropertyGroup>
 </Project>

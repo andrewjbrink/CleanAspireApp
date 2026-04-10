@@ -18,6 +18,11 @@ builder.AddAzureAppServiceEnvironment("plan").ConfigureInfrastructure(infra =>
     };
 });
 
+
+//var keyVault = builder
+//    .AddAzureKeyVault("keyvault");
+
+
 var sqlServer = builder
     .AddAzureSqlServer("sql")
     .RunAsContainer(container =>
@@ -71,6 +76,7 @@ var api = builder
 
 var frontent = builder.AddProject<CleanAspireApp_Web>("frontend")
     .WithExternalHttpEndpoints()
+    .WithReference(api)
     .PublishAsAzureAppServiceWebsite((context, site) =>
     {
         site.SiteConfig.IsAlwaysOn = true;
@@ -87,5 +93,7 @@ if (builder.ExecutionContext.IsPublishMode)
     api.WithReference(insights);
     migrationService.WithReference(insights);
 }
+
+
 
 builder.Build().Run();

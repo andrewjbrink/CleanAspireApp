@@ -8,6 +8,13 @@
 
 
   <ItemGroup>
+    <PackageReference Include="Esri.ArcGISRuntime" />
+    <PackageReference Include="MailKit" />
     <PackageReference Include="MudBlazor" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 </Project>

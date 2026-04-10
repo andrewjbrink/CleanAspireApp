@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Text.Json;
 
 // TODO: Investigate and fix IDE0055 warnings on Unix (runners)
 #pragma warning disable IDE0055
@@ -19,8 +21,10 @@ namespace Microsoft.Extensions.Hosting;
 // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
 public static class Extensions
 {
+    private const string CorsPolicyName = "AllowAllOrigins";
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
+        
         builder.ConfigureOpenTelemetry();
 
         builder.AddDefaultHealthChecks();
@@ -42,7 +46,33 @@ public static class Extensions
         //     options.AllowedSchemes = ["https"];
         // });
 
+        builder.Services.Configure<JsonSerializerOptions>(options =>
+        {
+            options.PropertyNamingPolicy = null;
+            options.PropertyNameCaseInsensitive = true;
+        });
+
+        builder.Services.Configure<JsonOptions>(options =>
+        {
+            options.SerializerOptions.PropertyNamingPolicy = null;
+            options.SerializerOptions.PropertyNameCaseInsensitive = false;
+        });
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(CorsPolicyName,
+                builder => builder.AllowAnyOrigin()
+                                  .AllowAnyMethod()
+                                  .AllowAnyHeader());
+        });
+
         return builder;
+    }
+
+    public static void ApplyApiCorsConfig(this WebApplication app)
+    {
+        app.UseCors(CorsPolicyName);
+        app.UseCors("AllowBlazor");
     }
 
     private static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder)

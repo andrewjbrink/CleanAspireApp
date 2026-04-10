@@ -3,8 +3,11 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-
-    <PackageVersion Include="MudBlazor"  Version="9.3.0"/>
+    <PackageVersion Include="Aspire.Hosting.Azure.KeyVault" Version="13.2.2" />
+    <PackageVersion Include="Esri.ArcGISRuntime" Version="200.8.1" />
+    <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
+    <PackageVersion Include="MailKit" Version="4.15.1" />
+    <PackageVersion Include="MudBlazor" Version="9.3.0" />
     <PackageVersion Include="Ardalis.Specification" Version="9.3.1" />
     <PackageVersion Include="Ardalis.Specification.EntityFrameworkCore" Version="9.3.1" />
     <PackageVersion Include="Aspire.Hosting.Azure.ApplicationInsights" Version="13.2.1" />

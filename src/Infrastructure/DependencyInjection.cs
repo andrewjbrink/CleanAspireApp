@@ -1,9 +1,9 @@
-using EntityFramework.Exceptions.SqlServer;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using CleanAspireApp.Application.Common.Interfaces;
 using CleanAspireApp.Infrastructure.Persistence;
 using CleanAspireApp.Infrastructure.Persistence.Interceptors;
+using EntityFramework.Exceptions.SqlServer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace CleanAspireApp.Infrastructure;
 
@@ -32,5 +32,15 @@ public static class DependencyInjection
         services.AddScoped<DispatchDomainEventsInterceptor>();
 
         services.AddSingleton(TimeProvider.System);
+    }
+    public static void AddInfrastructureWeb(this IHostApplicationBuilder builder)
+    {
+        builder.AddSqlServerDbContext<ApplicationDbContext>("CleanArchitecture", null, options =>
+        {
+
+
+        });
+        var services = builder.Services;
+
     }
 }

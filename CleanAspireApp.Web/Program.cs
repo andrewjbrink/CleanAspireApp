@@ -1,8 +1,20 @@
+using CleanAspireApp.Domain.Common.Base;
+using CleanAspireApp.Infrastructure;
 using CleanAspireApp.Web.Components;
+using CleanAspireApp.Web.Extensions;
+using CleanAspireApp.Web.Interfaces;
+using CleanAspireApp.Web.Services;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var apiBaseUrl = builder.Configuration["services:api:https:0"] ?? builder.Configuration["services:api:http:0"]; //services:api:https:0
 
+
+builder.AddServiceDefaults();
+builder.Services.AddWebApiWeb();
+builder.AddInfrastructureWeb();
+builder.Services.AddScoped<JavaHelper>();
+builder.Services.AddScoped<MapService>();
 // Add MudBlazor services
 builder.Services.AddMudServices();
 
@@ -10,6 +22,17 @@ builder.Services.AddMudServices();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.Configure<EmailSettings>
+    (builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddHttpClient("https+http://apiservice");
+
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(apiBaseUrl!)
+});
+
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -28,5 +51,12 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapGet("/config.js", async context =>
+{
+    context.Response.ContentType = "application/javascript";
+    await context.Response.WriteAsync($"window.__config = {{ apiBaseUrl: '{apiBaseUrl}' }};");
+});
+
 
 app.Run();

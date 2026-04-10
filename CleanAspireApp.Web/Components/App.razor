@@ -7,6 +7,7 @@
     <base href="/" />  
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href=@Assets["_content/MudBlazor/MudBlazor.min.css"] rel="stylesheet" />
+    <link rel="stylesheet" href="https://js.arcgis.com/5.0/esri/themes/dark/main.css" />
     <ImportMap />
     <link rel="icon" type="image/ico" href="favicon.ico" />
     <HeadOutlet @rendermode="InteractiveServer" />
@@ -16,6 +17,8 @@
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
     <script src=@Assets["_content/MudBlazor/MudBlazor.min.js"]></script>
+    <script src="/config.js"></script>
+    <script type="module" src="https://js.arcgis.com/5.0/"></script>
 </body>
 
 </html>

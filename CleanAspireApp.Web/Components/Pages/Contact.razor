@@ -1,0 +1,138 @@
+@page "/contact"
+@using System.ComponentModel.DataAnnotations
+@using CleanAspireApp.Web.Interfaces
+@inject ISnackbar Snackbar
+@inject IEmailService EmailService
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Elevation="4" Class="pa-6 rounded-lg">
+        <MudText Typo="Typo.h4" Class="mb-4">Contact Us</MudText>
+
+        <MudForm @ref="form" Model="contactModel">
+            <MudTextField T="string"
+                          Label="Your Email Address"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="Email is required"
+                          @bind-Value="contactModel.Email"
+                          For="@(() => contactModel.Email)" />
+
+            <MudTextField T="string"
+                          Label="Message"
+                          Variant="Variant.Outlined"
+                          Lines="6"
+                          Text="@contactModel.Message"
+                          TextChanged="@(v => contactModel.Message = v)"
+                          Required="true"
+                          RequiredError="Message is required"
+                          For="@(() => contactModel.Message)"
+                          Class="mt-4"
+                          AutoGrow="true"
+                          Immediate="true" />
+
+            <!-- Honeypot Field (hidden from users, bots often fill it) -->
+            <MudTextField T="string"
+                          Label=""
+                          @bind-Value="contactModel.Website"
+                          Style="display:none;"
+                          TabIndex="-1" />
+
+            <!-- Simple Math CAPTCHA -->
+            <MudText Typo="Typo.body1" Class="mt-4">What is @captchaA + @captchaB?</MudText>
+            <MudTextField T="int?"
+                          Label="Captcha"
+                          Variant="Variant.Outlined"
+                          @bind-Value="contactModel.CaptchaAnswer"
+                          Required="true"
+                          RequiredError="Captcha answer is required" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Class="mt-6"
+                       Disabled="isSubmitting"
+                OnClick="(()=> SubmitForm())">
+                @if (isSubmitting)
+                {
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="me-2" />
+                    <span>Sending...</span>
+                }
+                else
+                {
+                    <span>Submit</span>
+                }
+            </MudButton>
+
+           
+
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm? form;
+    private int captchaA = Random.Shared.Next(1, 10);
+    private int captchaB = Random.Shared.Next(1, 10);
+    private bool isSubmitting;
+
+    private ContactModel contactModel = new();
+
+
+    private async Task SubmitForm()
+    {
+        // await form!.ValidateAsync();
+
+        // if(!form.IsValid)
+        // {
+        //     Snackbar.Add("Please fill in all required fields correctly.", Severity.Error);
+        //     return;
+        // };
+        isSubmitting = true;
+
+        try
+        {
+            // Honeypot spam protection
+            if (!string.IsNullOrWhiteSpace(contactModel.Website))
+            {
+                Snackbar.Add("Spam detected.", Severity.Error);
+                return;
+            }
+
+            // Captcha validation
+            if (contactModel.CaptchaAnswer != (captchaA + captchaB))
+            {
+                Snackbar.Add("Incorrect captcha answer.", Severity.Error);
+                return;
+            }
+            
+            
+            await EmailService.SendClientEmailAsync(contactModel.Email, contactModel.Message);
+
+            Snackbar.Add("Your message has been sent successfully!", Severity.Success);
+            contactModel = new ContactModel();
+            await form!.ResetAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to send message: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public class ContactModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string Message { get; set; } = string.Empty;
+
+        public string Website { get; set; } = string.Empty;
+
+        [Required]
+        public int? CaptchaAnswer { get; set; }
+    }
+}

@@ -35,8 +35,10 @@ app.UseStaticFiles();
 
 app.MapHeroEndpoints();
 app.MapTeamEndpoints();
+app.MapValuationEndpoints();
 app.UseEventualConsistencyMiddleware();
 
+app.ApplyApiCorsConfig();
 app.MapDefaultEndpoints();
 app.UseExceptionHandler();
 

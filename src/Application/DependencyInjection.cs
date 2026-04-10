@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using CleanAspireApp.Application.Common.Behaviours;
+﻿using CleanAspireApp.Application.Common.Behaviours;
+using CleanAspireApp.Application.Interfaces;
+using CleanAspireApp.Application.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CleanAspireApp.Application;
 
@@ -22,6 +24,8 @@ public static class DependencyInjection
 
             config.AddOpenBehavior(typeof(PerformanceBehaviour<,>));
         });
+        services.AddScoped<IPropertyValuation, PropertyValuations>();
+
         return services;
     }
 }
