@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - "CleanAspireApp.Web/**" #WebFrontEnd/WebFrontEnd.csproj MudBlazorWebApp
-      - ".github/workflows/frontend-webapp.yml"
+      - ".github/workflows/deploy-frontend.yml"
   workflow_dispatch:
 
 jobs:
