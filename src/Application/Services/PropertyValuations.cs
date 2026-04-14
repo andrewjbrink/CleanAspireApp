@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 
 namespace CleanAspireApp.Application.Services;
 
+
+
 public class PropertyValuations : IPropertyValuation
 {
     private readonly string _baseUrlErf = "https://web1.capetown.gov.za/web1/gv2025/Results?Search=ERF,";
@@ -23,7 +25,13 @@ public class PropertyValuations : IPropertyValuation
     {
         var web = new HtmlWeb();
         var doc = web.Load(url);
-        List<PropertyRecord> propertyRecords = await ExtractRows(doc);
+        PropertyRecordType propertyRecordType = new PropertyRecordType
+        {
+            IsScheme = false,
+            SchemeName = string.Empty
+        };
+
+        List<PropertyRecord> propertyRecords = await ExtractRows(doc, propertyRecordType);
         foreach (var record in propertyRecords)
         {
             record.PageNumber = "1";
@@ -33,7 +41,52 @@ public class PropertyValuations : IPropertyValuation
         return propertyRecords;
     }
 
-    private static async Task<List<PropertyRecord>> ExtractRows(HtmlDocument doc)
+    private async Task<List<PropertyRecord>> GetHangingProperties(string propertyDescription)
+    {
+        List<PropertyRecord> hangHoldRecords = new List<PropertyRecord>();
+        string baseUrlPropertyReference = "https://web1.capetown.gov.za/web1/gv2025/Results?Search=VAL,";
+        string[] holdingProperty = propertyDescription.Split(":");
+        string holdingPropertyReference = holdingProperty[1].Trim();
+        //now use this url to get the hanging property details.
+        var holdingPropertyUrl = $"{baseUrlPropertyReference}{holdingPropertyReference}";
+        var web1 = new HtmlWeb();
+        var docHanging = web1.Load(holdingPropertyUrl);
+        var rowsHanging = docHanging.DocumentNode.SelectNodes("//table//tr");
+        if (rowsHanging != null)
+        {
+            for (int j = 1; j < rowsHanging.Count; j++)
+            {
+                var rowHanging = rowsHanging[j];
+                var cellsHanging = rowHanging.SelectNodes("td");
+
+                if (cellsHanging != null && cellsHanging.Count >= 10)
+                {
+
+                    var recordHanging = new PropertyRecord
+                    {
+                        PropertyReference = cellsHanging[0].InnerText.Trim(),
+                        Address = cellsHanging[3].InnerText.Trim(),
+                        MarketValue = cellsHanging[5].InnerText.Trim(),
+                        EffectiveDate = cellsHanging[9].InnerText.Trim(),
+                        DisputeExpiryDate = cellsHanging.Count > 10 ? cellsHanging[10].InnerText.Trim() : string.Empty,
+                        Description = cellsHanging[1].InnerText.Trim(),
+                        Link = $"{baseUrlPropertyReference}{cellsHanging[0].InnerText.Trim()}",
+                        RatingCategory = cellsHanging[2].InnerText.Trim(),
+                        Extent = double.TryParse(cellsHanging[4].InnerText.Trim(), out var extent) ? extent : 0,
+                    };
+                    hangHoldRecords.Add(recordHanging);
+                }
+            }
+            if (hangHoldRecords.Count > 1)
+            {
+                hangHoldRecords.RemoveAt(0);
+            }
+            return hangHoldRecords;
+        }
+        return new List<PropertyRecord>();
+    }
+
+    private async Task<List<PropertyRecord>> ExtractRows(HtmlDocument doc, PropertyRecordType propertyRecordType)
     {
         {
             string baseUrlPropertyReference = "https://web1.capetown.gov.za/web1/gv2025/Results?Search=VAL,";
@@ -43,12 +96,14 @@ public class PropertyValuations : IPropertyValuation
             {
                 for (int i = 1; i < rows.Count; i++)
                 {
+                    var hangHoldRecords = new List<PropertyRecord>();
+                    decimal maxMarketValue = 0;
                     var row = rows[i];
                     var cells = row.SelectNodes("td");
                     if (cells != null && cells.Count >= 10)
                     {
                         string erf = cells[1].InnerText.Trim();
-
+                        string propertyDescription = cells[1].InnerText.Trim();
                         var firstSpace = erf.IndexOf(' ');
                         string erfNumberPart = string.Empty;
                         string allotmentPart = string.Empty;
@@ -56,8 +111,8 @@ public class PropertyValuations : IPropertyValuation
                         string cleanedMarketValue = ParseRandValueSafe(stringMarketValue).ToString();
                         if (firstSpace > 0)
                         {
-                            erfNumberPart = erf[..firstSpace];
-                            allotmentPart = erf[(firstSpace + 1)..];
+                            erfNumberPart = erf[..firstSpace].Trim();
+                            allotmentPart = erf[(firstSpace + 1)..].Trim();
                         }
                         var record = new PropertyRecord
                         {
@@ -72,18 +127,58 @@ public class PropertyValuations : IPropertyValuation
                             Allotment = allotmentPart,
                             Erf = erfNumberPart,
                             Description = cells[1].InnerText.Trim(),
-                            Link = $"{baseUrlPropertyReference}{cells[0].InnerText.Trim()}"
+                            Link = $"{baseUrlPropertyReference}{cells[0].InnerText.Trim()}",
+                            IsScheme = propertyRecordType.IsScheme,
+                            SCHEME_NAME = propertyRecordType.IsScheme ? propertyRecordType.SchemeName : string.Empty
                         };
+
+
+                        //CAPE TOWN - HOLDING : SEE HANGING BELOW
+                        if (propertyDescription.Contains("- HOLDING :"))
+                        {
+                            //If properties are valued together then the words are appended to the allotment. I need to remove them to get the correct allotment for the hanging properties.
+                            var newAllotment = erf[..erf.IndexOf('-')];
+                            erfNumberPart = newAllotment[..newAllotment.IndexOf(' ')].Trim();
+                            allotmentPart = newAllotment[(newAllotment.IndexOf(' ') + 1)..].Trim();
+                            record.Allotment = allotmentPart;
+                            record.Erf = erfNumberPart;
+                        }
+
+
+
+                        if (propertyDescription.Contains("VALUED WITH :"))
+                        {
+                            var newAllotment = erf[..erf.IndexOf('-')];
+                            erfNumberPart = newAllotment[..newAllotment.IndexOf(' ')].Trim();
+                            allotmentPart = newAllotment[(newAllotment.IndexOf(' ') + 1)..].Trim();
+                            record.Allotment = allotmentPart;
+                            record.Erf = erfNumberPart;
+                            hangHoldRecords = await GetHangingProperties(propertyDescription);
+                            foreach (var hangHoldRecord in hangHoldRecords)
+                            {
+                                decimal marketValue = ParseRandValueSafe(hangHoldRecord.MarketValue);
+                                if (marketValue > maxMarketValue)
+                                {
+                                    maxMarketValue = marketValue;
+                                }
+                            }
+                        }
+                        if (maxMarketValue > 0)
+                        {
+                            record.MarketValue = maxMarketValue.ToString();
+                        }
+                        record.ValuedTogether = hangHoldRecords;
                         propertyRecords.Add(record);
                     }
                 }
+                propertyRecords.RemoveAt(0);
                 return propertyRecords;
             }
             return new List<PropertyRecord>();
         }
     }
 
-    private static async Task<List<PropertyRecord>> Paginator(string url)
+    private async Task<List<PropertyRecord>> Paginator(string url)
     {
         List<PropertyRecord> allPropertyRecords = new List<PropertyRecord>();
         var web = new HtmlWeb();
@@ -136,14 +231,19 @@ public class PropertyValuations : IPropertyValuation
         return new List<PropertyRecord>();
     }
 
-    private static async Task<IEnumerable<PropertyRecord>> GetPageParcelsAsync(HtmlDocument pageDoc, string pageNumber)
+    private async Task<IEnumerable<PropertyRecord>> GetPageParcelsAsync(HtmlDocument pageDoc, string pageNumber)
     {
-        List<PropertyRecord> propertyRecords = await ExtractRows(pageDoc);
+        PropertyRecordType propertyRecordType = new PropertyRecordType
+        {
+            IsScheme = false,
+            SchemeName = string.Empty
+        };
+
+        List<PropertyRecord> propertyRecords = await ExtractRows(pageDoc, propertyRecordType);
         foreach (var record in propertyRecords)
         {
             record.PageNumber = pageNumber;
         }
-        propertyRecords.RemoveAt(0);
         return propertyRecords;
     }
 
@@ -187,12 +287,9 @@ public class PropertyValuations : IPropertyValuation
         return new List<Sales>();
     }
 
-    public async Task<PropertyRecord> GetPropertyValuation(string erf, string allotment)
+    public async Task<PropertyRecord> AddSales(PropertyRecord thisProperty)
     {
-        string encodedAllotment = WebUtility.UrlEncode(allotment);
         string geocoderUrl = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates";
-        var parcels = await GetAllValuations(erf);
-        var thisProperty = parcels.Where(p => p.Erf == erf && allotment.Contains(p.Allotment)).FirstOrDefault();
         if (thisProperty != null)
         {
             var salesRecords = await GetPropertySalesAsync(thisProperty.PropertyReference);
@@ -203,11 +300,24 @@ public class PropertyValuations : IPropertyValuation
                     var url = geocoderUrl + $"?f=json&singleLine={Uri.EscapeDataString(sale.Address)}";
                     sale.AddressLocator = url;
                 }
-                thisProperty.SalesRecords = salesRecords;
+                thisProperty.Sales = salesRecords;
                 return thisProperty;
             }
         }
         return null!;
+    }
+
+    public async Task<PropertyRecord> GetPropertyValuation(string erf, string allotment)
+    {
+        string encodedAllotment = WebUtility.UrlEncode(allotment);
+
+        var parcels = await GetAllValuations(erf);
+
+        var thisProperty = parcels.Where(p => p.Erf == erf && allotment.Contains(p.Allotment)).FirstOrDefault();
+
+
+
+        return thisProperty ?? null!;
     }
 
     public static decimal ParseRandValueSafe(string value)
@@ -228,25 +338,23 @@ public class PropertyValuations : IPropertyValuation
 
     public async Task<List<PropertyRecord>> GetAllSSValuations(string schemeName)
     {
+
+        PropertyRecordType propertyRecordType = new PropertyRecordType
+        {
+            IsScheme = true,
+            SchemeName = schemeName,
+        };
         string encodedSchemeName = Uri.EscapeDataString(schemeName);
-        string geocoderUrl = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates";
         string baseUrlSS = "https://web1.capetown.gov.za/web1/gv2025/ResSecTit?Search=SE1,";
         var url = $"{baseUrlSS}{encodedSchemeName}";
 
         var web = new HtmlWeb();
         var doc = web.Load(url);
-        List<PropertyRecord> propertyRecords = await ExtractRows(doc);
+        List<PropertyRecord> propertyRecords = await ExtractRows(doc, propertyRecordType);
         foreach (var record in propertyRecords)
         {
+            //await AddSales(record);
             record.PageNumber = "1";
-            var salesRecords = await GetPropertySalesAsync(record.PropertyReference);
-            foreach (var sale in salesRecords)
-            {
-                var addressUrl = geocoderUrl + $"?f=json&singleLine={Uri.EscapeDataString(sale.Address)}";
-                sale.AddressLocator = addressUrl;
-            }
-            record.SalesRecords = salesRecords;
-
         }
         List<PropertyRecord> allPages = await Paginator(url);
         propertyRecords.AddRange(allPages);
@@ -301,55 +409,19 @@ public class PropertyValuations : IPropertyValuation
 
                     if (propertyDescription.Contains("VALUED WITH :"))
                     {
-                        string[] holdingProperty = propertyDescription.Split(":");
-                        string holdingPropertyReference = holdingProperty[1].Trim();
-                        //now use this url to get the hanging property details.
-                        var holdingPropertyUrl = $"{baseUrlPropertyReference}{holdingPropertyReference}";
-                        record.HoldingLink = holdingPropertyUrl;
-                        var web1 = new HtmlWeb();
-                        var docHanging = web1.Load(holdingPropertyUrl);
-                        var rowsHanging = docHanging.DocumentNode.SelectNodes("//table//tr");
-
-                        if (rowsHanging != null)
+                        hangHoldRecords = await GetHangingProperties(propertyDescription);
+                        foreach (var hangHoldRecord in hangHoldRecords)
                         {
-                            for (int j = 1; j < rowsHanging.Count; j++)
+                            decimal marketValue = ParseRandValueSafe(hangHoldRecord.MarketValue);
+                            if (marketValue > maxMarketValue)
                             {
-                                var rowHanging = rowsHanging[j];
-                                var cellsHanging = rowHanging.SelectNodes("td");
-
-                                if (cellsHanging != null && cellsHanging.Count >= 10)
-                                {
-                                    string stringMarketValue1 = cellsHanging[5].InnerText.Trim();
-                                    decimal marketValue = ParseRandValueSafe(stringMarketValue1);
-                                    if (marketValue > maxMarketValue)
-                                    {
-                                        maxMarketValue = marketValue;
-                                    }
-                                    var recordHanging = new PropertyRecord
-                                    {
-                                        PropertyReference = cellsHanging[0].InnerText.Trim(),
-                                        Address = cellsHanging[3].InnerText.Trim(),
-                                        MarketValue = stringMarketValue1,
-                                        EffectiveDate = cellsHanging[9].InnerText.Trim(),
-                                        DisputeExpiryDate = cellsHanging.Count > 10 ? cellsHanging[10].InnerText.Trim() : string.Empty,
-                                        Description = cellsHanging[1].InnerText.Trim(),
-                                    };
-                                    hangHoldRecords.Add(recordHanging);
-                                }
-
+                                maxMarketValue = marketValue;
                             }
-
-
                         }
                     }
 
-                    if (hangHoldRecords.Count > 1)
-                    {
-                        hangHoldRecords.RemoveAt(0);
-                    }
                     if (maxMarketValue > 0)
                     {
-
                         record.MarketValue = maxMarketValue.ToString();
                     }
                     record.ValuedTogether = hangHoldRecords;
@@ -362,21 +434,15 @@ public class PropertyValuations : IPropertyValuation
                 var thisFarm = propertyRecords.LastOrDefault();
                 if (thisFarm != null)
                 {
-                    var salesRecords = await GetPropertySalesAsync(thisFarm.PropertyReference);
 
-                    foreach (var sale in salesRecords)
-                    {
-                        var farmUrl = geocoderUrl + $"?f=json&singleLine={Uri.EscapeDataString(sale.Address)}";
-                        sale.AddressLocator = farmUrl;
-                    }
-                    thisFarm.SalesRecords = salesRecords;
+                    //await AddSales(thisFarm);
+
                     return thisFarm;
                 }
             }
         }
         return new PropertyRecord();
     }
-
 
     /// <summary>
     /// A List can be returned. I must handle the correct one from the GIS.
@@ -387,13 +453,19 @@ public class PropertyValuations : IPropertyValuation
     public async Task<List<PropertyRecord>> GetAllSSUnitValuations(string schemeName, string unit)
     {
 
+        PropertyRecordType propertyRecordType = new PropertyRecordType
+        {
+            IsScheme = true,
+            SchemeName = schemeName,
+        };
+
         string encodedSchemeName = Uri.EscapeDataString(schemeName);
         string baseUrlSS = "https://web1.capetown.gov.za/web1/gv2025/ResSecTit?Search=SE2,";
         var url = $"{baseUrlSS}{encodedSchemeName},{unit}";
 
         var web = new HtmlWeb();
         var doc = web.Load(url);
-        List<PropertyRecord> propertyRecords = await ExtractRows(doc);
+        List<PropertyRecord> propertyRecords = await ExtractRows(doc, propertyRecordType);
         foreach (var record in propertyRecords)
         {
             record.PageNumber = "1";
@@ -403,6 +475,12 @@ public class PropertyValuations : IPropertyValuation
         return propertyRecords;
 
 
+    }
+
+    private sealed class PropertyRecordType
+    {
+        public bool IsScheme { get; set; } = false;
+        public string SchemeName { get; set; } = string.Empty;
     }
 }
 

@@ -9,12 +9,24 @@ using MudBlazor.Services;
 var builder = WebApplication.CreateBuilder(args);
 var apiBaseUrl = builder.Configuration["services:api:https:0"] ?? builder.Configuration["services:api:http:0"]; //services:api:https:0
 
+var config = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("appsettings.local.json", optional: true) // Load local overrides
+    .AddEnvironmentVariables()
+    .Build();
+
+builder.Configuration.AddConfiguration(config);
 
 builder.AddServiceDefaults();
 builder.Services.AddWebApiWeb();
 builder.AddInfrastructureWeb();
 builder.Services.AddScoped<JavaHelper>();
 builder.Services.AddScoped<MapService>();
+builder.Services.AddScoped<EnqNotifier>();
+
+builder.Services.AddMemoryCache();
+
 // Add MudBlazor services
 builder.Services.AddMudServices();
 
@@ -25,14 +37,23 @@ builder.Services.AddRazorComponents()
 builder.Services.Configure<EmailSettings>
     (builder.Configuration.GetSection("EmailSettings"));
 
-builder.Services.AddHttpClient("https+http://apiservice");
 
+builder.Services.AddHttpClient("https+http://apiservice");
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(apiBaseUrl!)
 });
 
+builder.Services.AddHttpClient<ValuationService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl!);
+});
+
+builder.Services.AddScoped<ObjectionState>();
+builder.Services.AddScoped<ValuationState>();
+builder.Services.AddScoped<ValuationStateMany>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

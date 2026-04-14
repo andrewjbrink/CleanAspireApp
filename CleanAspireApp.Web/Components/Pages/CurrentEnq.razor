@@ -1,0 +1,105 @@
+﻿@page "/current"
+
+@using CleanAspireApp.Domain.ValuationRoll
+@using CleanAspireApp.Web.Extensions
+@using CleanAspireApp.Web.Services
+@using Newtonsoft.Json
+
+
+@inject IJSRuntime _jsRuntime
+@inject EnqNotifier notifier
+@inject ValuationService valuationService
+@inject ValuationStateMany state
+@inject JavaHelper javaHelper
+@inject ISnackbar snackbar
+
+@if (isScheme)
+{
+    <SchemeUnits  propertyRecords ="@propertyRecords" />
+}
+else
+{
+    <PropertyRecordCard propertyRecord="@thisProperty" />
+}
+
+@code
+{
+    private IJSObjectReference? module;
+    private List<PropertyRecord> propertyRecords = default!;
+    private PropertyRecord? thisProperty = default!;
+    string endpoint = default!;
+    private bool isScheme = false;
+
+    private void SelectedCallback(PropertyRecord selected)
+    {
+        thisProperty = selected;
+    }
+    private bool isLoading = false;
+
+
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var thisEndpoint = await javaHelper.GetItemAsync("endpoint") ?? null;
+            var lastValuation = await javaHelper.GetItemAsync("lastValuation") ?? null;
+            if (lastValuation is not null || lastValuation != string.Empty)
+            {
+                thisProperty = JsonConvert.DeserializeObject<PropertyRecord>(lastValuation!);
+                if(thisProperty != null && thisProperty.IsScheme) 
+                {
+                    var schemeName = thisProperty.SCHEME_NAME;
+                    isScheme = true;
+                    var cached = state.Get(schemeName);
+                    if(cached != null)
+                    {
+                        snackbar.Add("Fetching the data...", Severity.Info);
+                        propertyRecords = cached;
+                        StateHasChanged();
+                    } else
+                    {
+                        snackbar.Add("This is a Scheme. Fetching the units...", Severity.Success);
+                        isLoading = true;
+                        propertyRecords = await valuationService.GetSSValuationsAsync(schemeName);
+                        state.Set(schemeName, propertyRecords);
+                        isLoading = false;
+                        StateHasChanged();
+                        snackbar.Clear();
+                       
+                        await notifier.NotifyEnqChanged(true);
+                    }
+                }else
+                {
+                    isScheme = false;
+                    StateHasChanged();
+                }
+               
+                await notifier.NotifyEnqChanged(true);
+            }
+        }
+    }
+
+    
+
+    // private async Task GetValuationfromEndpoint(string endpoint)
+    // {
+    //     var cached = state.Get(endpoint);
+    //     if (cached != null)
+    //     {
+    //         data = cached;
+    //         // snackbar.Add("Data loaded from cache", Severity.Info);
+    //         StateHasChanged();
+    //     }
+    //     else
+    //     {
+    //         snackbar.Add("Fetching your data", Severity.Success);
+    //         data = await valuationService.GetValuationsAsync(endpoint);
+    //         state.Set(endpoint, data);
+    //         snackbar.Clear();
+    //     }
+    //     await notifier.NotifyEnqChanged(true);
+    //     StateHasChanged();
+    
+    // }
+
+}

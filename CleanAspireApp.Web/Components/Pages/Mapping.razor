@@ -1,3 +1,31 @@
 ﻿@page "/mapping"
+@using CleanAspireApp.Web.Services
+
+@inject EnqNotifier notifier
+@inject ISnackbar snackbar
 
 <GisMap />
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+       
+        notifier.OnEnqChanged += ShowNotification;
+    }
+
+    private async Task ShowNotification(bool changed)
+    {
+        // await notifier.ShowNotification();
+        ShowSnackbar();
+    }
+
+    private void ShowSnackbar()
+    {
+        // snackbar.Add("Enquiry status changed!", Severity.Success);
+    }
+     public void Dispose()
+    {
+        notifier.OnEnqChanged -= ShowNotification;
+    }
+}

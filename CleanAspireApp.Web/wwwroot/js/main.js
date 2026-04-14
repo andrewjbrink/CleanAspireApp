@@ -62,6 +62,7 @@ export function saveGraphics() {
 
     // Convert graphics to JSON
     savedGraphics = graphics.map(g => g.toJSON());
+    console.log("Graphics count:" ,savedGraphics.length);
 }
 
 export function restoreGraphics() {

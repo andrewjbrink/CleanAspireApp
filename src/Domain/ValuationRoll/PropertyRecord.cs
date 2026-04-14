@@ -1,4 +1,6 @@
-﻿namespace CleanAspireApp.Domain.ValuationRoll;
+﻿using System.Text.Json.Serialization;
+
+namespace CleanAspireApp.Domain.ValuationRoll;
 
 public class PropertyRecord
 {
@@ -15,9 +17,15 @@ public class PropertyRecord
     public string EffectiveDate { get; set; } = string.Empty;
     public string DisputeExpiryDate { get; set; } = string.Empty;
     public string Link { get; set; } = string.Empty;
+    public DateTime DateCreated { get; set; }
     public string HoldingLink { get; set; } = string.Empty;
     public string Erf { get; set; } = string.Empty;
     public string Allotment { get; set; } = string.Empty;
-    public List<Sales> SalesRecords { get; set; } = new List<Sales>();
+    public bool IsScheme { get; set; } = false;
+    public string SCHEME_NAME { get; set; } = string.Empty;
+    public string SCHEME_NUMBER { get; set; } = string.Empty;
+    public string SCHEME_YEAR { get; set; } = string.Empty;
+    [JsonIgnore]
+    public List<Sales> Sales { get; set; } = new List<Sales>();
     public List<PropertyRecord> ValuedTogether { get; set; } = new List<PropertyRecord>();
 }

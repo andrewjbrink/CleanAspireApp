@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>4e1a5cca-d9cb-4c09-b01d-b038a5c1d54f</UserSecretsId>
   </PropertyGroup>
 
 
@@ -11,10 +12,26 @@
     <PackageReference Include="Esri.ArcGISRuntime" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="MudBlazor" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
 
   <ItemGroup>
     <ProjectReference Include="..\src\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <Content Update="appsettings.local.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.local.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <!-- "PreserveNewest" = "Copy if newer" -->
+    </None>
+  </ItemGroup>
+
 </Project>

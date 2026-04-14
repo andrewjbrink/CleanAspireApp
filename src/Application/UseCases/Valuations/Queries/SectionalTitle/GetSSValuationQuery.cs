@@ -21,7 +21,13 @@ public record SSValuationDto(
                             string ExpireyDate,
                             string Erf,
                             string Allotment,
-                            string Link, IEnumerable<SSSalesDto> Sales);
+                            bool IsScheme,
+                            string SCHEME_NAME,
+                            string SCHEME_NUMBER,
+                            string SCHEME_YEAR,
+                            string Link,
+                            DateTime DateCreated,
+                            IEnumerable<SSSalesDto> Sales);
 
 public record SSSalesDto(string PropertyReference,
     string Address,
@@ -55,7 +61,12 @@ internal sealed class GetSSValuationQueryHandler(IPropertyValuation pv)
                record.DisputeExpiryDate,
                record.Erf,
                record.Allotment,
+               record.IsScheme,
+               record.SCHEME_NAME,
+               record.SCHEME_NUMBER,
+               record.SCHEME_YEAR,
                record.Link,
+               DateTime.Today,
                new List<SSSalesDto>()
                );
             valuations.Add(ssDto);

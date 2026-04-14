@@ -1,0 +1,113 @@
+﻿@using CleanAspireApp.Domain.ValuationRoll
+
+
+@if (firstRecord is not null)
+{
+   <MudCard>
+       <MudCardHeader>
+           <CardHeaderContent>
+                <MudText Align="Align.Left" Color="Color.Primary">
+                    @firstRecord.SCHEME_NAME
+                </MudText>
+           </CardHeaderContent>
+       </MudCardHeader>
+   </MudCard> 
+   <br/>
+}
+
+
+
+@if (_selectedRecord is not null)
+{
+    <RequestObjection propertyRecord="@_selectedRecord" />
+}
+
+@* Striped="true"
+Breakpoint="Breakpoint.Sm" *@
+<br />
+<MudItem>
+    <MudDataGrid @ref="_dataGrid"
+        T="PropertyRecord"
+        Items="propertyRecords"
+        Hover="true" 
+        Bordered="true"
+        QuickFilter="_searchSSFunc"
+        SelectedItemChanged="OnSelectedItemChanged">
+        <ToolBarContent>
+            <MudText Typo="Typo.body1" Class="mr-2" Color="Color.Info">
+                Filter
+            </MudText>
+
+
+            <MudTextField @bind-Value="_searchString" 
+                Placeholder="Search by description..." 
+                Adornment="Adornment.Start" 
+                AdornmentIcon="@Icons.Material.Filled.Search" 
+                IconSize="Size.Medium" 
+                Immediate ="true"
+                Class="mx-4" />
+
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.PropertyReference" Title="Property Reference" />
+            <PropertyColumn Property="x => x.Description" Title="Description" />
+            <PropertyColumn Property="x => x.Address" Title="Address" />
+            <PropertyColumn Property="x => x.Extent" Title="Extent" />
+            <PropertyColumn Property="x => x.MarketValue" Title="Market Value" />
+            <PropertyColumn Property="x => x.RatingCategory" Title="Rating Category" />
+        </Columns>
+       <PagerContent>
+           <MudDataGridPager T="PropertyRecord" />
+       </PagerContent>
+    </MudDataGrid>
+</MudItem>
+
+@code {
+
+    [Parameter]
+    public List<PropertyRecord> propertyRecords { get; set; } = default!;
+
+    private MudDataGrid<PropertyRecord> _dataGrid = default!;
+
+    private string _searchString = string.Empty;
+
+    private PropertyRecord _selectedRecord = default!;
+
+    private PropertyRecord firstRecord = default!;
+
+    [Parameter]
+    public EventCallback<PropertyRecord> selectedItemCallback { get; set; }
+
+
+    private Func<PropertyRecord, bool> _searchSSFunc => ss =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            if (string.IsNullOrWhiteSpace(_searchString))
+                return true;
+        return ss.Description.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+    };
+
+
+    protected override Task OnInitializedAsync()
+    {
+        if (propertyRecords is not null && propertyRecords.Count > 0)
+        {
+            firstRecord = propertyRecords.FirstOrDefault() ?? null;    
+
+        }
+
+        return base.OnInitializedAsync();
+    }
+
+
+
+    private async void OnSelectedItemChanged(PropertyRecord args)
+    {
+        _selectedRecord = args;
+        if (selectedItemCallback.HasDelegate)
+        {
+            await selectedItemCallback.InvokeAsync(_selectedRecord);
+        }
+    }
+}

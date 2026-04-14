@@ -1,0 +1,118 @@
+﻿@using CleanAspireApp.Domain.ValuationRoll
+@using CleanAspireApp.Web.Extensions
+@using Newtonsoft.Json
+@using System.Globalization
+@inject JavaHelper javaHelper
+
+<MudCard Elevation="4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            @if (propertyRecord == null)
+            {
+                <p>No data yet!</p>
+            }
+            else
+            {
+                <MudText Align="Align.Left" Color="Color.Primary">Last Enquiry</MudText>
+                <br />
+                <MudText Align="Align.Left" Color="Color.Success">@propertyRecord.Address</MudText>
+                <br />
+                <div>
+                    <span>View on the City's website here:</span>
+                    <span>
+                        <MudLink Href="@propertyRecord.Link" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+                            <b>@propertyRecord.PropertyReference</b>
+                        </MudLink>
+                    </span>
+                </div>
+
+                <br />
+
+                <MudText Align="Align.Left">
+                    Market Value: R @propertyRecord.MarketValue
+                </MudText>
+                <MudText Align="Align.Left">Rating Category: @propertyRecord.RatingCategory</MudText>
+                <MudText Align="Align.Left">Property Description: @propertyRecord.Description</MudText>
+                <MudText Align="Align.Left">Extent: @propertyRecord.Extent</MudText>
+                
+
+                @* @if (propertyRecord.ValuedTogether.Count > 0)
+                {
+                    <MudAlert Severity="Severity.Normal" ContentAlignment="HorizontalAlignment.Start">
+                        This property is valued toether:
+                        <MudLink Href="@propertyRecord.HoldingLink" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+                            <b>Holding property</b>
+                        </MudLink>
+                    </MudAlert>
+                } *@
+
+
+                @if (googleMapsUrl != string.Empty)
+                {
+                    <br/>
+                    <div>
+                        <span>View on Goolge Maps:</span>
+                        <span>
+                            <MudLink Href="@googleMapsUrl" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+                                <b>Google Maps</b>
+                            </MudLink>
+                        </span>
+                    </div>
+                }
+            }
+        </CardHeaderContent>
+    </MudCardHeader>
+</MudCard>
+<br/>
+ <RequestObjection propertyRecord="@propertyRecord" />
+<br/>
+
+ @if (propertyRecord is not null)
+{
+    @if (propertyRecord.ValuedTogether != null && propertyRecord.ValuedTogether.Count > 0)
+    {
+        <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Start">
+            This property is valued together with the following properties:
+        </MudAlert>
+        <SchemeUnits propertyRecords="@propertyRecord.ValuedTogether" selectedItemCallback="HandleSelectedChanged" /> 
+    }
+    
+} 
+
+@code {
+
+    [Parameter]
+    public PropertyRecord propertyRecord { get; set; } = default!;
+
+    private string googleMapsUrl = string.Empty;
+
+    private PropertyRecord? selectedProperty = default!;
+
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        var lastLocation = await javaHelper.GetItemAsync("propertyLocation") ?? null;
+        if (lastLocation is not null || lastLocation != string.Empty)
+        {
+            var location = JsonConvert.DeserializeObject<MapPoint>(lastLocation!);
+            if (location != null)
+            {
+                // Use the location data as needed
+                googleMapsUrl = $"https://www.google.com/maps?q={location.Y},{location.X}";
+            }
+        }
+    } 
+
+    private async void HandleSelectedChanged(PropertyRecord args)
+    {
+        // propertyRecord = args;
+    }
+    
+    private sealed class MapPoint
+        {
+            public object SpatialReference { get; set; } = default!;
+            public double X { get; set; }
+            public double Y { get; set; }
+        }
+}
+

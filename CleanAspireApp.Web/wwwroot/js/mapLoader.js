@@ -107,7 +107,7 @@ export function createSchemeUnitsUI(view)
     // Append the container to the expander
     expander.appendChild(container);
     // Add the expander to the map UI
-    view.ui.add(expander, { position: "bottom-left", index: 1 });
+   /* view.ui.add(expander, { position: "bottom-left", index: 1 });*/
 
 }
 
@@ -147,7 +147,7 @@ export function createCustomUI(view) {
     // Append the container to the expander
     expander.appendChild(container);
     // Add the expander to the map UI
-    view.ui.add(expander, { position: "bottom-left", index: 0 });
+   /* view.ui.add(expander, { position: "bottom-left", index: 0 });*/
 
 }
 
@@ -209,6 +209,7 @@ async function initializeMap() {
 
         // Add to DOM
         document.body.appendChild(loader);
+        loader.hidden = "true";
         //// IMPORTANT: turn it off AFTER attaching
         //requestAnimationFrame(() => {
         //    loader.active = false;

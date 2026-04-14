@@ -1,4 +1,6 @@
-﻿using CleanAspireApp.Web.Interfaces;
+﻿using CleanAspireApp.Domain.Common.Base;
+using CleanAspireApp.Domain.ValuationRoll;
+using CleanAspireApp.Web.Interfaces;
 using MailKit.Net.Smtp;
 using MimeKit;
 
@@ -34,5 +36,10 @@ public class EmailService : IEmailService
         var response = await client.SendAsync(adminEmailToSend);
         client.Disconnect(true);
         return await Task.FromResult(response.ToString());
+    }
+
+    public Task SendReviewAsync(ContactModel contactModel, PropertyRecord propertyRecord)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -24,7 +24,7 @@ internal sealed class GetUnitValuationQueryHandler(IPropertyValuation pv)
         foreach (PropertyRecord record in records)
         {
 
-            var sales = record.SalesRecords;
+            var sales = record.Sales;
             var salesList = new List<SSSalesDto>();
             foreach (var s in sales)
             {
@@ -53,7 +53,13 @@ internal sealed class GetUnitValuationQueryHandler(IPropertyValuation pv)
                record.DisputeExpiryDate,
                record.Erf,
                record.Allotment,
-               record.Link, salesList
+               record.IsScheme,
+               record.SCHEME_NAME,
+               record.SCHEME_NUMBER,
+               record.SCHEME_YEAR,
+               record.Link,
+               DateTime.Today,
+               salesList
                );
             valuations.Add(ssDto);
         }

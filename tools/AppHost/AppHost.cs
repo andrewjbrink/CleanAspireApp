@@ -1,6 +1,9 @@
 using AppHost.Commands;
+using Azure.Identity;
 using Azure.Provisioning;
 using Azure.Provisioning.AppService;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -19,8 +22,15 @@ builder.AddAzureAppServiceEnvironment("plan").ConfigureInfrastructure(infra =>
 });
 
 
-//var keyVault = builder
-//    .AddAzureKeyVault("keyvault");
+
+if (builder.Environment.IsProduction())
+{
+    var keyVaultUri = new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/");
+
+    builder.Configuration.AddAzureKeyVault(
+        keyVaultUri,
+        new DefaultAzureCredential());
+}
 
 
 var sqlServer = builder

@@ -21,6 +21,7 @@ public record FarmValuationDto(
                             string Erf,
                             string Allotment,
                             string Link,
+                            DateTime DateCreated,
                             string HoldingLink,
                             IEnumerable<FarmSalesDto> Sales,
                             IEnumerable<HangHoldDto> ValuedTogether);
@@ -37,7 +38,10 @@ public record FarmSalesDto(string PropertyReference,
 public record HangHoldDto(
      string PropertyReference,
      string Description,
-     string MarketValue
+     string MarketValue,
+     string RatingCategory,
+     string Address,
+     string Link
     );
 
 internal sealed class GetFarmValuationQueryHandler(IPropertyValuation pv)
@@ -56,12 +60,15 @@ internal sealed class GetFarmValuationQueryHandler(IPropertyValuation pv)
                 var hangHoldDto = new HangHoldDto(
                     h.PropertyReference,
                     h.Description,
-                    h.MarketValue
+                    h.MarketValue,
+                    h.RatingCategory,
+                    h.Address,
+                    h.Link
                     );
                 listHanging.Add(hangHoldDto);
             }
 
-            var sales = record.SalesRecords;
+            var sales = record.Sales;
             var salesList = new List<FarmSalesDto>();
             foreach (var s in sales)
             {
@@ -92,6 +99,7 @@ internal sealed class GetFarmValuationQueryHandler(IPropertyValuation pv)
                        record.Erf,
                        record.Allotment,
                        record.Link,
+                       DateTime.Today,
                        record.HoldingLink,
                        salesList,
                        listHanging

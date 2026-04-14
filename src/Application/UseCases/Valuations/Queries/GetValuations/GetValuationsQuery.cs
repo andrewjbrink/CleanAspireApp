@@ -24,10 +24,20 @@ public record ValuationDto(string PageNumber,
                             string ExpireyDate,
                             string Erf,
                             string Allotment,
-                            string Link
+                            DateTime DateCreated,
+                            string Link,
+                            IEnumerable<SalesDto> Sales,
+                            IEnumerable<HangHoldDto> ValuedTogether
     );
 
-
+public record SalesDto(string PropertyReference,
+    string Address,
+    string Description,
+    string ErfExtent,
+    string DwellingExtent,
+    string SaleDate,
+    string SalePrice,
+    string AddressLocator);
 
 internal sealed class GetValuationsQueryHandler(IPropertyValuation pv)
     : IRequestHandler<GetValuationsQuery, IReadOnlyList<ValuationDto>>
@@ -43,6 +53,39 @@ internal sealed class GetValuationsQueryHandler(IPropertyValuation pv)
 
         foreach (PropertyRecord record in records)
         {
+
+            var sales = record.Sales;
+            var salesList = new List<SalesDto>();
+            foreach (var s in sales)
+            {
+                var saleDto = new SalesDto(
+                    s.PropertyReference,
+                    s.Address,
+                    s.Description,
+                    s.ErfExtent,
+                    s.DwellingExtent,
+                    s.SaleDate,
+                    s.SalePrice,
+                    s.AddressLocator
+                    );
+                salesList.Add(saleDto);
+            }
+
+
+            var listHanging = new List<HangHoldDto>();
+            var hanging = record.ValuedTogether;
+            foreach (var h in hanging)
+            {
+                var hangHoldDto = new HangHoldDto(
+                    h.PropertyReference,
+                    h.Description,
+                    h.MarketValue,
+                    h.RatingCategory,
+                    h.Address,
+                    h.Link
+                    );
+                listHanging.Add(hangHoldDto);
+            }
             var valuation = new ValuationDto(
                 record.PageNumber,
                     record.PropertyReference,
@@ -56,7 +99,10 @@ internal sealed class GetValuationsQueryHandler(IPropertyValuation pv)
                     record.DisputeExpiryDate,
                     record.Erf,
                     record.Allotment,
-                    record.Link
+                    DateTime.Today,
+                    record.Link,
+                    salesList,
+                    listHanging
                 );
             valuations.Add(valuation);
         }

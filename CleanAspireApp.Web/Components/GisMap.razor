@@ -18,8 +18,7 @@
     {
         if (firstRender)
         {
-            module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/main.js"); //mapInterop.js
-            // module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/main.js");
+            module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/main.js"); 
             await module.InvokeVoidAsync("initializeMapWrapper");
             // await module.InvokeVoidAsync("restoreMapState"); 
             // await module.InvokeVoidAsync("restoreGraphics");
@@ -31,10 +30,9 @@
     {
         if (module != null)
         {
-            // await module.InvokeVoidAsync("saveMapState");
             // await module.InvokeVoidAsync("saveGraphics");
-
-            await module.DisposeAsync();
+            // await module.DisposeAsync();
+          
         }
     }
 }

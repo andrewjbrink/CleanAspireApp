@@ -1,13 +1,36 @@
-@page "/contact"
+﻿@page "/submit-review"
+@using CleanAspireApp.Domain.ValuationRoll
+@using CleanAspireApp.Web.Services
 @using System.ComponentModel.DataAnnotations
-@using CleanAspireApp.Domain.Common.Base
 @using CleanAspireApp.Web.Interfaces
+@using CleanAspireApp.Domain.Common.Base
 @inject ISnackbar Snackbar
 @inject IEmailService EmailService
+@inject ObjectionState state
+
+@if (record is not null) 
+{
+     <MudText Color="Color.Primary" Align="Align.Center" Typo="Typo.h5">
+        Submit Review for @record.Description
+     </MudText>
+    <br/>
+    
+}
+ @* <MudText Align="Align.Left" GutterBottom="true">
+    If you wish to have valuation of this property reviewed, please complete this form.
+    <br />
+    We currently partner with Valunation.
+    For more information on them, you can refer to the following link:
+</MudText> 
+<MudLink Href="https://valunation.co.za/" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+    More details
+</MudLink> *@
+
+
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
     <MudPaper Elevation="4" Class="pa-6 rounded-lg">
-        <MudText Typo="Typo.h4" Class="mb-4">Contact Us</MudText>
+        @* <MudText Typo="Typo.h4" Class="mb-4">Contact Us</MudText> *@
 
         <MudForm @ref="form" Model="contactModel">
             <MudTextField T="string"
@@ -17,6 +40,21 @@
                           RequiredError="Email is required"
                           @bind-Value="contactModel.Email"
                           For="@(() => contactModel.Email)" />
+            <MudTextField T="string"
+                          Label="Your Name"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="Name is required"
+                          @bind-Value="contactModel.Name"
+                          For="@(() => contactModel.Name)" />
+
+            <MudTextField T="string"
+                          Label="Your contact number"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="Contact number is required"
+                          @bind-Value="contactModel.ContactNumber"
+                          For="@(() => contactModel.ContactNumber)" />
 
             <MudTextField T="string"
                           Label="Message"
@@ -51,7 +89,7 @@
                        Color="Color.Primary"
                        Class="mt-6"
                        Disabled="isSubmitting"
-                OnClick="(()=> SubmitForm())">
+                       OnClick="(()=> SubmitForm())">
                 @if (isSubmitting)
                 {
                     <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="me-2" />
@@ -70,6 +108,8 @@
 </MudContainer>
 
 @code {
+
+    private PropertyRecord record = default!;
     private MudForm? form;
     private int captchaA = Random.Shared.Next(1, 10);
     private int captchaB = Random.Shared.Next(1, 10);
@@ -77,6 +117,14 @@
 
     private ContactModel contactModel = new();
 
+    override protected void OnInitialized()
+    {
+        var cached = state.SelectedItem;
+        if (cached != null)
+        {
+            record = cached;
+        }
+    }
 
     private async Task SubmitForm()
     {
@@ -104,9 +152,9 @@
                 Snackbar.Add("Incorrect captcha answer.", Severity.Error);
                 return;
             }
+
             
-            
-            await EmailService.SendClientEmailAsync(contactModel.Email, contactModel.Message);
+            await EmailService.SendReviewAsync(contactModel, record);
 
             Snackbar.Add("Your message has been sent successfully!", Severity.Success);
             contactModel = new ContactModel();
@@ -121,4 +169,5 @@
             isSubmitting = false;
         }
     }
+    
 }

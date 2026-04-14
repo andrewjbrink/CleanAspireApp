@@ -7,6 +7,8 @@
     "@arcgis/core/symbols/TextSymbol.js",
 ]);
 import { findMunicipality } from "./mapLoader.js";
+import { saveMapState } from "./main.js";
+import { saveGraphics } from "./main.js";
 
 import { logToDotNet } from "./DotnetLogger.js";
 import { downloadSales, formatRand } from "./fileUtils.js";
@@ -40,14 +42,15 @@ export async function getSSValuation(feature, view, map)
     const wgs84Point = webMercatorUtils.webMercatorToGeographic(centroid);
     const endpoint = window.__config.apiBaseUrl + "/api/valuations/SchemeValuation/" + schemeName.replace(" ", "%20");
     try {
-
+        localStorage.setItem("endpoint", endpoint);
+        localStorage.setItem("propertyLocation", JSON.stringify(wgs84Point));
         document.querySelector("calcite-loader").hidden = false;
         const response = await fetch(`${endpoint}`, {
             method: 'GET'
         });
         if (response.ok)
         {
-            
+            document.querySelector("calcite-loader").hidden = true;
             const rollData = await response.json();
             if (rollData )
             {
@@ -56,7 +59,8 @@ export async function getSSValuation(feature, view, map)
                 if (schemeNumber === null)
                 {
                     /*Will assume that there are no other schemes with the same scheme name.*/
-                   
+                    const firstUnit = rollData[0];
+                    localStorage.setItem("lastValuation", JSON.stringify(firstUnit));
                     console.log("No Scheme number but cannot isolate to this scheme. Returning all units");
                     addUnits(rollData)
                     return rollData;
@@ -72,7 +76,8 @@ export async function getSSValuation(feature, view, map)
                         
                         if (allotSplit === null)
                         {
-                           
+                            const firstUnit = rollData[0];
+                            localStorage.setItem("lastValuation", JSON.stringify(firstUnit));
                             console.log("Has a Scheme number but cannot isolate to this scheme. Returning all units");
                             addUnits(rollData)
                             return rollData;
@@ -95,12 +100,15 @@ export async function getSSValuation(feature, view, map)
                             //the only way I can do that is to reverse geocode the point.
                             if (filtered.length === 0)
                             {
-                               
+                                const firstUnit = rollData[0];
+                                localStorage.setItem("lastValuation", JSON.stringify(firstUnit));
                                 console.log("Has a Scheme number but could not filter on scheme number. Their is an inconsistency with the SG and CoCT scheme number");
                                 addUnits(rollData)
                                 return rollData;
                             }
-                            
+
+                            const firstUnit = rollData[0];
+                            localStorage.setItem("lastValuation", JSON.stringify(firstUnit));
                             console.log("Has a Scheme number and limited units to this Scheme only");
                             addUnits(filtered)
                             return filtered;
@@ -110,24 +118,16 @@ export async function getSSValuation(feature, view, map)
         }
         else
         {
-            //no response
+            document.querySelector("calcite-loader").hidden = true;
         }
     } catch (error) {
 
+        document.querySelector("calcite-loader").hidden = true;
     }
 }
 
-
 export async function getFarmMarketValue(feature, view,map)
 {
-
-    //const [MapView, CentroidOperator] =
-    //    await $arcgis.import([
-    //        "@arcgis/core/views/MapView.js",
-    //        "@arcgis/core/geometry/operators/centroidOperator.js",
-    //    ]);
-
-    // Ensure config is loaded before using it
     if (!window.__config) {
         await loadConfig();
     } 
@@ -153,21 +153,25 @@ export async function getFarmMarketValue(feature, view,map)
             const data = await response.json();
             if (data)
             {
-                localStorage.setItem("response", JSON.stringify(data));
+                localStorage.setItem("endpoint", endpoint);
+                localStorage.setItem("propertyLocation", JSON.stringify(wgs84Point));
+                localStorage.setItem("lastValuation", JSON.stringify(data));
                 var sales = data.Sales;
                 document.querySelector("calcite-loader").hidden = true;
                 addSalesRecords(sales);
                 createGraphicPoint(view, wgs84Point.x, wgs84Point.y, data);
+                saveMapState(view);
                 return data;
             } else {
                 showStatus("Nothing returned from the CoCT website...");
+                document.querySelector("calcite-loader").hidden = true;
             }
         }
         
     }
     catch (error) {
         console.error('Error fetching valuation roll data:', error);
-
+        document.querySelector("calcite-loader").hidden = true;
     }
 
 }
@@ -185,7 +189,7 @@ export async function getMarketValue(feature, view,map) {
     const wgs84Point = webMercatorUtils.webMercatorToGeographic(centroid);
 
     const endpoint = window.__config.apiBaseUrl + "/api/valuations/ErfValuation/" + erfName.replace("RE/", "") + "/" + minRegion.replace(" ", "%20"); //
-    console.log("Endpoint:", endpoint);
+    //console.log("Endpoint:", endpoint);
     try
     {
         document.querySelector("calcite-loader").hidden = false;
@@ -199,12 +203,15 @@ export async function getMarketValue(feature, view,map) {
         {
             const data = await response.json();
             if (data) {
-                localStorage.setItem("response", JSON.stringify(data));
+                localStorage.setItem("endpoint", endpoint);
+                localStorage.setItem("lastValuation", JSON.stringify(data));
+                localStorage.setItem("propertyLocation", JSON.stringify(wgs84Point));
                 document.querySelector("calcite-loader").hidden = true;
                 const sales = data.Sales;
                 theseSales = sales;
                 addSalesRecords(sales);
                 createGraphicPoint(view, wgs84Point.x, wgs84Point.y, data);
+                saveMapState(view);
                 return data;
             } else
             {
@@ -215,6 +222,7 @@ export async function getMarketValue(feature, view,map) {
     } catch (error)
     {
         console.error('Error fetching valuation roll data:', error);
+        document.querySelector("calcite-loader").hidden = true;
 
     }
 }
@@ -225,7 +233,8 @@ function showStatus(msg) {
 
 
 function addUnits(units) {
-    document.querySelector("calcite-loader").hidden = true;
+    //I may want to just write the first unit to local storage and then get the rest of the units from the first unit. This is because the first unit will have the same scheme number as the rest of the units and I can use that to filter the units on the client side if needed.
+    //there seems to be an issue when loading the local storage when it is too large.
     const tbodyUnits = document.getElementById("ssUnitsTable");
     if (!tbodyUnits) {
         console.warn("Table not ready yet");
@@ -718,23 +727,6 @@ async function createGraphicPoint(view, lon, lat, data)
         verticalAlignment: "middle",
         yoffset: 10
     };
-
-    // Label as a TextSymbol
-    const textSymbol = new TextSymbol({
-        text: formattedValue,
-        color: "white",
-        haloColor: "black", // Halo outline color
-        haloSize: 40,         // Halo thickness in points
-        font: {
-            family: "Josefin Sans",
-            style: "normal",
-            weight: "bold",
-            size: 10,
-        },
-        yoffset: 10 // Move label above the point
-    });
-    //haloColor: "blue",
-    //    haloSize: 1,
 
     // Create marker graphic
     const markerGraphic = new Graphic({

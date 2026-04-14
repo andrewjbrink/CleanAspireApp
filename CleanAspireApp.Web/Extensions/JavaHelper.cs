@@ -36,6 +36,11 @@ public class JavaHelper
         }
     }
 
+
+
+
+
+
     public async Task LoadMainModel()
     {
         var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/main.js");
