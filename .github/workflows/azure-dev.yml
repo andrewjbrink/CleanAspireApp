@@ -44,10 +44,8 @@ jobs:
       - name: Set location
         run: azd env set AZURE_LOCATION $AZURE_LOCATION
         working-directory: ./tools/AppHost
-        
-      - name: Provision Infrastructure
-        run: azd provision --no-prompt
-        working-directory: ./tools/AppHost
+    
+      
 
       - name: Deploy
         run: azd deploy --no-prompt
