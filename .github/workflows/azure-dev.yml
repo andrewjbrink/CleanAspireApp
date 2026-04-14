@@ -38,7 +38,7 @@ jobs:
             --tenant-id "$AZURE_TENANT_ID"
       
       - name: Create azd env
-        run: azd env select prod #azd env select prod || azd env new prod --no-prompt
+        run: azd env select rg-prod #azd env select prod || azd env new prod --no-prompt
         working-directory: ./tools/AppHost
 
       - name: Set location
