@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      APPLICATION_NAME: "frontend-dc2fbmxcbeotk"
+      APPLICATION_NAME: "frontend-nbpzuiuzvbjrw"
       DOTNET_VERSION: "10.0.x" 
       PROJECT_PATH: "CleanAspireApp.Web/CleanAspireApp.Web.csproj"  #CleanAspireApp.Web/CleanAspireApp.Web.csproj
 

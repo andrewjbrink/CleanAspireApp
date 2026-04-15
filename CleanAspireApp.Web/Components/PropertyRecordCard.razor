@@ -4,18 +4,27 @@
 @using System.Globalization
 @inject JavaHelper javaHelper
 
-
-
-
  @if (propertyRecord is not null)
     {
     <MudCard Elevation="1">
     <MudCardHeader>
         <CardHeaderContent>
            
-                <MudText Align="Align.Left" Color="Color.Primary">Last Enquiry</MudText>
-                <br />
-                <MudText Align="Align.Left" Color="Color.Success">@propertyRecord.Address</MudText>
+                   <MudPaper Class="pa-1 align-start d-flex" >
+                    <MudPaper Class="pa-3" Elevation="0">
+                        <MudText Align="Align.Left" Color="Color.Primary" Typo="Typo.h5">
+                            Last Enquiry
+                        </MudText>
+                    </MudPaper>
+
+                    <MudSpacer />
+
+                    <MudPaper Class="pa-3" Elevation="0">
+                        <MudText Align="Align.Left" Color="Color.Warning">
+                            @propertyRecord.Address
+                        </MudText>
+                    </MudPaper>
+            </MudPaper>
                 <br />
                 <div>
                     <span>View on the City's website here:</span>

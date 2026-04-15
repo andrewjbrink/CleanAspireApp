@@ -1,6 +1,6 @@
 ﻿using CleanAspireApp.Domain.ValuationRoll;
 
-namespace CleanAspireApp.Web.Services;
+namespace CleanAspireApp.Application.UseCases.Valuations.States;
 
 public class ObjectionState
 {

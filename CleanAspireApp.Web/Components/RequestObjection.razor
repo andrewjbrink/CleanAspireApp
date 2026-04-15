@@ -1,37 +1,16 @@
-﻿@using CleanAspireApp.Domain.ValuationRoll
+﻿@using CleanAspireApp.Application.UseCases.Valuations.States
+@using CleanAspireApp.Domain.ValuationRoll
 @using CleanAspireApp.Web.Services
 @inject ISnackbar snackbar
 @inject ObjectionState state
 @inject NavigationManager navigationManager
-@* <MudCard>
-    <MudCardHeader>
-        <CardHeaderContent >
-            <MudPaper Class=" pa-1 align-start d-flex" Style="width: 350px;" >
-                <MudPaper Class="pa-3" Elevation="0">
-                    <MudText Align="Align.Left" Color="Color.Primary">
-                        Request Valuation Review
-                    </MudText>
-                </MudPaper>
 
-                <MudSpacer/>
-
-                <MudPaper Class="pa-3" Elevation="0">
-                    <MudIconButton Variant="Variant.Outlined"
-                                   Icon="@Icons.Material.Filled.Email"
-                                   Color="Color.Warning"
-                                   OnClick="(() => OnRequestObjectionClicked())">
-                   
-                    </MudIconButton>
-                </MudPaper>
-            </MudPaper>
-        </CardHeaderContent>
-    </MudCardHeader>
-</MudCard> *@
-<MudPaper Class=" pa-1 align-start d-flex" Style="width: 300px;">
+<MudPaper Class="pa-1 align-start d-flex"> @* Style="width: 440px;" *@
     <MudPaper Class="pa-4" Elevation="0">
-        <MudText Align="Align.Left" Color="Color.Primary">
-            Request Valuation Review
-        </MudText>
+            <MudText Align="Align.Left" Color="Color.Primary">
+                Request Valuation Review: @propertyRecord.PropertyReference
+            </MudText>
+        
     </MudPaper>
 
     <MudSpacer />
@@ -51,6 +30,8 @@
 
     [Parameter]
     public PropertyRecord propertyRecord { get; set; } = default!;
+
+    
 
     private void OnRequestObjectionClicked()
     {

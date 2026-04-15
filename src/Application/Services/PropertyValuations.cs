@@ -366,7 +366,6 @@ public class PropertyValuations : IPropertyValuation
     {
         string baseUrlFarm = "https://web1.capetown.gov.za/web1/gv2025/Results?Search=FA2,";
         string baseUrlPropertyReference = "https://web1.capetown.gov.za/web1/gv2025/Results?Search=VAL,";
-        string geocoderUrl = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates";
 
         List<PropertyRecord> propertyRecords = new List<PropertyRecord>();
         string[] farmDesc = farm.Split(',');

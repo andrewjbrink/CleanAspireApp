@@ -1,5 +1,6 @@
 ﻿@page "/current"
 
+@using CleanAspireApp.Application.UseCases.Valuations.States
 @using CleanAspireApp.Domain.ValuationRoll
 @using CleanAspireApp.Web.Extensions
 @using CleanAspireApp.Web.Services
@@ -24,17 +25,14 @@ else
 
 @code
 {
-    private IJSObjectReference? module;
     private List<PropertyRecord> propertyRecords = default!;
     private PropertyRecord? thisProperty = default!;
-    string endpoint = default!;
     private bool isScheme = false;
 
     private void SelectedCallback(PropertyRecord selected)
     {
         thisProperty = selected;
     }
-    private bool isLoading = false;
 
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
@@ -58,10 +56,8 @@ else
                     } else
                     {
                         snackbar.Add("This is a Scheme. Fetching the units...", Severity.Success);
-                        isLoading = true;
                         propertyRecords = await valuationService.GetSSValuationsAsync(schemeName);
                         state.Set(schemeName, propertyRecords);
-                        isLoading = false;
                         StateHasChanged();
                         snackbar.Clear();
                        
