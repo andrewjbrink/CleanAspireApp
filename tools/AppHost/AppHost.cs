@@ -1,9 +1,7 @@
 using AppHost.Commands;
-using Azure.Identity;
 using Azure.Provisioning;
 using Azure.Provisioning.AppService;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -22,15 +20,22 @@ builder.AddAzureAppServiceEnvironment("plan").ConfigureInfrastructure(infra =>
 });
 
 
+var keyvaultName = builder.Configuration["KeyVaultName"];
 
-if (builder.Environment.IsProduction())
-{
-    var keyVaultUri = new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/");
 
-    builder.Configuration.AddAzureKeyVault(
-        keyVaultUri,
-        new DefaultAzureCredential());
-}
+//if (builder.Environment.IsProduction())
+//{
+//    var keyVaultUri = new Uri($"https://{keyvaultName}.vault.azure.net/");
+
+//    builder.Configuration.AddAzureKeyVault(
+//        keyVaultUri,
+//        new DefaultAzureCredential());
+//}
+
+var secrets = builder.ExecutionContext.IsPublishMode
+    ? builder.AddAzureKeyVault(keyvaultName!)
+    : builder.AddConnectionString(keyvaultName!);
+
 
 
 var sqlServer = builder
@@ -74,6 +79,7 @@ var migrationService = builder.AddProject<MigrationService>("migrations")
 var api = builder
     .AddProject<WebApi>("api")
     .WithExternalHttpEndpoints()
+    .WithReference(secrets)
     .WithReference(db)
     .WaitForCompletion(migrationService)
     .PublishAsAzureAppServiceWebsite((context, site) =>
@@ -82,11 +88,10 @@ var api = builder
         site.SiteConfig.NumberOfWorkers = 1; // Scale out to 2 instances for better performance and reliability
     });
 
-
-
 var frontent = builder.AddProject<CleanAspireApp_Web>("frontend")
     .WithExternalHttpEndpoints()
     .WithReference(api)
+    .WithReference(secrets)
     .PublishAsAzureAppServiceWebsite((context, site) =>
     {
         site.SiteConfig.IsAlwaysOn = true;

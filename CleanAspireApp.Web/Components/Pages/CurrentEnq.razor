@@ -43,7 +43,7 @@ else
         {
             var thisEndpoint = await javaHelper.GetItemAsync("endpoint") ?? null;
             var lastValuation = await javaHelper.GetItemAsync("lastValuation") ?? null;
-            if (lastValuation is not null || lastValuation != string.Empty)
+            if (lastValuation is not null)
             {
                 thisProperty = JsonConvert.DeserializeObject<PropertyRecord>(lastValuation!);
                 if(thisProperty != null && thisProperty.IsScheme) 
@@ -53,7 +53,6 @@ else
                     var cached = state.Get(schemeName);
                     if(cached != null)
                     {
-                        snackbar.Add("Fetching the data...", Severity.Info);
                         propertyRecords = cached;
                         StateHasChanged();
                     } else
@@ -75,6 +74,10 @@ else
                 }
                
                 await notifier.NotifyEnqChanged(true);
+            }
+            else
+            {
+                snackbar.Add("No property enquiry found.", Severity.Info);
             }
         }
     }

@@ -56,10 +56,12 @@ public class SmtpEmailService : IEmailService
 
     public async Task SendReviewAsync(ContactModel contactModel, PropertyRecord propertyRecord)
     {
+
+        //https://onecompiler.com/html/44kedefmj
         var email = new MimeMessage();
         email.From.Add(MailboxAddress.Parse(contactModel.Email));
         email.To.Add(MailboxAddress.Parse(_configuration["EmailSettings:ToPrimary"] ?? throw new InvalidOperationException("EmailSettings:ToPrimary is not configured")));
-        email.Cc.Add(MailboxAddress.Parse(_configuration["EmailSettings:ToSecondary"] ?? throw new InvalidOperationException("EmailSettings:ToSecondary is not configured")));
+        email.Bcc.Add(MailboxAddress.Parse(_configuration["EmailSettings:ToSecondary"] ?? throw new InvalidOperationException("EmailSettings:ToSecondary is not configured")));
         email.Subject = "Valuation review";
 
         var sysBody = $@"
@@ -74,10 +76,14 @@ public class SmtpEmailService : IEmailService
            style='background-color:#ffffff; border-radius:8px; overflow:hidden;'>
 
         <!-- HEADER / LOGO -->
+
         <tr>
             <td align='center' style='background-color:#1a73e8; padding:20px;'>
-                     
-
+                   <!-- Replace with your actual logo URL 
+                    <img src='https://valunation.co.za/wp-content/uploads/2024/10/logo-valunation-g.png' 
+                    alt='e-Roll Logo' 
+                    style='max-width:150px; display:block;' />     
+                   -->
             </td>
         </tr>
 

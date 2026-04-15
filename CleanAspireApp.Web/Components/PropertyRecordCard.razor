@@ -4,15 +4,15 @@
 @using System.Globalization
 @inject JavaHelper javaHelper
 
-<MudCard Elevation="4">
+
+
+
+ @if (propertyRecord is not null)
+    {
+    <MudCard Elevation="1">
     <MudCardHeader>
         <CardHeaderContent>
-            @if (propertyRecord == null)
-            {
-                <p>No data yet!</p>
-            }
-            else
-            {
+           
                 <MudText Align="Align.Left" Color="Color.Primary">Last Enquiry</MudText>
                 <br />
                 <MudText Align="Align.Left" Color="Color.Success">@propertyRecord.Address</MudText>
@@ -59,14 +59,19 @@
                         </span>
                     </div>
                 }
-            }
+            
         </CardHeaderContent>
     </MudCardHeader>
 </MudCard>
-<br/>
- <RequestObjection propertyRecord="@propertyRecord" />
-<br/>
+}
 
+<br/>
+@if (propertyRecord is not  null)
+{
+    <RequestObjection propertyRecord="@propertyRecord" />
+    <br />
+}
+ 
  @if (propertyRecord is not null)
 {
     @if (propertyRecord.ValuedTogether != null && propertyRecord.ValuedTogether.Count > 0)
@@ -76,7 +81,6 @@
         </MudAlert>
         <SchemeUnits propertyRecords="@propertyRecord.ValuedTogether" selectedItemCallback="HandleSelectedChanged" /> 
     }
-    
 } 
 
 @code {
@@ -85,8 +89,6 @@
     public PropertyRecord propertyRecord { get; set; } = default!;
 
     private string googleMapsUrl = string.Empty;
-
-    private PropertyRecord? selectedProperty = default!;
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {

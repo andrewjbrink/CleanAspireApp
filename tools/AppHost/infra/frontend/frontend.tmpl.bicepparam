@@ -1,0 +1,11 @@
+using './frontend-website.module.bicep'
+
+param frontend_containerimage = '{{ .Image }}'
+param frontend_containerport = '{{ targetPortOrDefault 8080 }}'
+param plan_outputs_azure_app_service_dashboard_uri = '{{ .Env.PLAN_AZURE_APP_SERVICE_DASHBOARD_URI }}'
+param plan_outputs_azure_container_registry_endpoint = '{{ .Env.PLAN_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
+param plan_outputs_azure_container_registry_managed_identity_client_id = '{{ .Env.PLAN_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_CLIENT_ID }}'
+param plan_outputs_azure_container_registry_managed_identity_id = '{{ .Env.PLAN_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
+param plan_outputs_azure_website_contributor_managed_identity_id = '{{ .Env.PLAN_AZURE_WEBSITE_CONTRIBUTOR_MANAGED_IDENTITY_ID }}'
+param plan_outputs_azure_website_contributor_managed_identity_principal_id = '{{ .Env.PLAN_AZURE_WEBSITE_CONTRIBUTOR_MANAGED_IDENTITY_PRINCIPAL_ID }}'
+param plan_outputs_planid = '{{ .Env.PLAN_PLANID }}'
