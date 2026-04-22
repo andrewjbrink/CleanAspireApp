@@ -4,8 +4,26 @@
     <MudNavLink Href="mapping" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Map">Map</MudNavLink>
     <MudNavLink Href="contact" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.ContactMail">Contact Us</MudNavLink>
     <MudNavLink Href="current" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Description">Last Enquiry</MudNavLink>
+   @*  <MudNavLink Href="auth/login" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Login">Login</MudNavLink> *@
     @* <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
     <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink> *@
+
+    <AuthorizeView>
+        <Authorized>
+           
+            <form method="post" action="authentication/logout">
+                <AntiforgeryToken />
+                <button type="submit" class="mud-nav-link mud-ripple">
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
+                </button>
+            </form>
+        </Authorized>
+
+        <NotAuthorized>
+            <MudNavLink Href="authentication/login" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
+        </NotAuthorized>
+
+    </AuthorizeView>
 
 </MudNavMenu>
 

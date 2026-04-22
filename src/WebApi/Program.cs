@@ -14,6 +14,7 @@ builder.Services.AddWebApi(builder.Configuration);
 builder.Services.AddApplication();
 builder.AddInfrastructure();
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -27,15 +28,18 @@ else
     app.UseHsts();
 }
 
-app.MapOpenApi();
-app.MapCustomScalarApiReference();
+//app.MapOpenApi();
+//app.MapCustomScalarApiReference();
+app.AplyOpenApiConfig();
 app.UseHealthChecks();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.MapHeroEndpoints();
-app.MapTeamEndpoints();
+//app.MapHeroEndpoints();
+//app.MapTeamEndpoints();
 app.MapValuationEndpoints();
+app.MapTenderEndpoints();
+//app.MapLoginLogout();
 app.UseEventualConsistencyMiddleware();
 
 app.ApplyApiCorsConfig();

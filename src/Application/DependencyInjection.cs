@@ -25,6 +25,7 @@ public static class DependencyInjection
             config.AddOpenBehavior(typeof(PerformanceBehaviour<,>));
         });
         services.AddScoped<IPropertyValuation, PropertyValuations>();
+        services.AddScoped<ITenderService, TenderService>();
 
         return services;
     }

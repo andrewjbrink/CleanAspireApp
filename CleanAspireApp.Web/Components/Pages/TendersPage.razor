@@ -1,0 +1,135 @@
+﻿@page "/tenders"
+
+@using CleanAspireApp.Domain.Tenders
+@using CleanAspireApp.Application.UseCases.Tenders.States
+@using CleanAspireApp.Web.Extensions
+@inject CleanAspireApp.Web.Services.TenderService tenderService
+
+@inject ISnackbar snackbar
+@inject NavigationManager NavigationManager
+@inject TenderState tenderState
+@inject JavaHelper javaHelper
+
+
+@* https://www.tutorialpedia.org/blog/cancellationtoken-in-blazor-pages/ *@
+
+@* @if (Tenders == null || Tenders.Count == 0)
+{
+    <MudPaper Class="d-flex justify-space-around mud-width-full" Elevation="0">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Indeterminate="true" />
+    </MudPaper>
+}
+else
+{
+    <p>@Tenders.Count</p>
+
+}
+ *@
+
+ <MudText Color="Color.Warning">
+     We gather the current tenders from the EasyTenders website. 
+     <br/>
+     We do NOT source the tender opportunities ourselves.
+    <br />
+     For more information, please visit the EasyTenders website here: <a href="https://www.easytenders.co.za/" target="_blank">https://www.easytenders.co.za/</a> 
+
+ </MudText>
+ <MudSpacer/>
+
+ <MudText>
+     Click here to get the open Valuation Tenders
+    <MudIconButton Variant="Variant.Outlined"
+                   Icon="@Icons.Material.Filled.Web"
+                   Color="Color.Info"
+                   OnClick="(() => GetTenders())">
+
+    </MudIconButton>
+ </MudText>
+
+
+
+<MudSpacer/>
+<MudItem>
+    <MudDataGrid T="EasyTender"
+        Items="OpenTenders"
+                 Hover="true"
+                 Bordered="true"
+                 ColumnResizeMode="ResizeMode.Column"
+                 SelectedItemChanged="SelectedTenderChanged">
+
+        <Columns>
+            <TemplateColumn>
+                <CellTemplate>
+                   <MudImage Src="@context.Item.Logurl" Height="100" Width="100">
+                        <MudLink Href="@context.Item.TenderUrl" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+                            <b>Tender Link</b>
+                        </MudLink>
+                        <MudLink Href="@context.Item.TenderDocument" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+                            <b>Tender Document</b>
+                        </MudLink>
+                   </MudImage>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Tender Number">
+                <CellTemplate>
+                    <MudStack>
+                        <MudLink Href="@context.Item.TenderUrl" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+                            <b>@context.Item.TenderNumber</b>
+                        </MudLink>
+                        @*    <MudLink Href="@context.Item.TenderDocument" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+                            <b>Document</b>
+                        </MudLink> *@
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+
+            <PropertyColumn Property="x => x.MunicipalityName" Title="Municipality" />
+            <PropertyColumn Property="x => x.Description" Title="Tender Description" />
+            <PropertyColumn Property="x => x.OpeningDate" Title="Opening date" />
+            <PropertyColumn Property="x => x.ClosingDate" Title="Closing date" />
+            <PropertyColumn Property="x => x.Age" Title="Days Till Closing" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="EasyTender" />
+        </PagerContent>
+    </MudDataGrid>
+
+</MudItem>
+
+
+
+@code {
+
+    public List<EasyTender> OpenTenders { get; set; } = null!;
+    private MudDataGrid<EasyTender> _dataGrid = default!;
+    private EasyTender SelectedTender = default!;
+    // private readonly CancellationTokenSource tokenSource = new CancellationTokenSource().CancelAfter(TimeSpan.FromSeconds(120));
+
+
+
+    private async Task GetTenders()
+    {
+        var requestDate = DateTime.Now.ToString("yyyy-MM-dd");
+        var cachedTenders = tenderState.Get(requestDate);
+        if (cachedTenders is not null && cachedTenders.Count >0)
+        {
+            OpenTenders = cachedTenders;
+            snackbar.Add("Using cached tenders.", Severity.Success);
+            StateHasChanged();
+        }
+        else
+        {
+
+            snackbar.Add("Fetching tenders from EasyTenders...", Severity.Success);
+            List<EasyTender> tenders = await tenderService.GetTenders();
+            OpenTenders = tenders.Where(x => x.Expired == false).ToList();
+            tenderState.Set(requestDate, tenders);
+            snackbar.Add($"Fetched {tenders.Count} tenders from EasyTenders.", Severity.Success);
+            StateHasChanged();
+        }
+    }
+    private void SelectedTenderChanged(EasyTender args)
+    {
+        SelectedTender = args;
+    }
+}

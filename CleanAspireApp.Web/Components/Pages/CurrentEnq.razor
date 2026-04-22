@@ -7,12 +7,25 @@
 @using Newtonsoft.Json
 
 
+
 @inject IJSRuntime _jsRuntime
 @inject EnqNotifier notifier
 @inject ValuationService valuationService
 @inject ValuationStateMany state
 @inject JavaHelper javaHelper
 @inject ISnackbar snackbar
+
+@* @attribute [Authorize] *@
+
+ @if (propertyRecords is null)
+{
+    <MudPaper Class="d-flex justify-space-around mud-width-full" Elevation="0">
+
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Indeterminate="true" />
+
+    </MudPaper>
+}
+
 
 @if (isScheme)
 {

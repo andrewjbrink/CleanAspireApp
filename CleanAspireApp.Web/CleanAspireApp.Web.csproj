@@ -11,8 +11,11 @@
   <ItemGroup>
     <PackageReference Include="Esri.ArcGISRuntime" />
     <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Polly" />
   </ItemGroup>
 
 
