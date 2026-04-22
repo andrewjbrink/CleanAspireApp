@@ -51,10 +51,8 @@ public class TenderService : ITenderService
                         var anchorTags = divHtml.DocumentNode.SelectSingleNode("//a");
                         var anchorNode = divHtml.DocumentNode.SelectSingleNode("//a[@class='text-dark']");
                         var href = anchorNode?.GetAttributeValue("href", string.Empty);
-                        tenderUrl = href?.ToString();
-
-
-                        var clientLink = CreateHttpClient(new Uri(tenderUrl));
+                        tenderUrl = href!.ToString();
+                        var clientLink = CreateHttpClient(new Uri(tenderUrl!));
                         var htmlLinkDoc = new HtmlDocument();
                         var htmlLink = await client.GetStringAsync(tenderUrl);
                         htmlLinkDoc.LoadHtml(htmlLink);
@@ -99,7 +97,6 @@ public class TenderService : ITenderService
 
                         if (paragraphs.Count >= blankNdx + 4)
                         {
-
                             try
                             {
                                 var detailsNode = paragraphs[blankNdx];
@@ -120,7 +117,6 @@ public class TenderService : ITenderService
                                 var openingDateNode = dateLines[0];
                                 string openingDateLabel = openingDateNode.InnerText.Trim();
                                 string openingDate = openingDateNode.NextSibling.InnerText.Trim();
-                                //Debug.Print($"{openingDateLabel}{openingDate}");
                                 var closingDateNode = dateLines[1];
                                 string closingDateLabel = closingDateNode.InnerText.Trim();
                                 string closingDate = closingDateNode.NextSibling.InnerText.Trim();
@@ -158,7 +154,7 @@ public class TenderService : ITenderService
                                     OpeningDate = DateOnly.FromDateTime(openingDateDate),
                                     ClosingDate = DateOnly.FromDateTime(closingDateDate),
                                     TenderUrl = tenderUrl,
-                                    TenderDocument = downloadHref,
+                                    TenderDocument = downloadHref!,
                                     Description = description,
                                     Expired = tenderClosed,
                                     Age = (int)daysBetween,
@@ -172,11 +168,7 @@ public class TenderService : ITenderService
 
                                 throw;
                             }
-
-
                         }
-
-
                     }
                 }
                 return valuationTenders;
@@ -198,27 +190,28 @@ public class TenderService : ITenderService
 
     public DateTime ConvertClosingDate(string dt)
     {
-        string newDt = dt.Substring(dt.IndexOf(",") + 1).Trim();
+        //string newDt = dt.Substring(dt.IndexOf(",") + 1).Trim();
+        var newDt = dt.AsSpan(dt.IndexOf(',') + 1).Trim().ToString();
         string[] splitDt = newDt.Split(" ");
         int monthNumber = GetMonthPosition(splitDt[1]);
         var actual = DateTimeFormatInfo.CurrentInfo.GetMonthName(monthNumber + 1);
 
-        string dateForFormat = $"{dt.Substring(0, dt.IndexOf(",")).Trim()}, {splitDt[0]} {actual} {splitDt[2]} {splitDt[3]}";
+        string dateForFormat = $"{dt.AsSpan(0, dt.IndexOf(',')).Trim()}, {splitDt[0]} {actual} {splitDt[2]} {splitDt[3]}";
 
-        DateTime dateTime = DateTime.ParseExact(dateForFormat, "dddd, d MMMM yyyy h:mmtt", System.Globalization.CultureInfo.InvariantCulture);
+        DateTime dateTime = DateTime.ParseExact(dateForFormat, "dddd, d MMMM yyyy h:mmtt", CultureInfo.InvariantCulture);
         return dateTime;
     }
 
     public DateTime ConvertOpeningDate(string dt)
     {
-        string newDt = dt.Substring(dt.IndexOf(",") + 1).Trim();
+        string newDt = dt.AsSpan(dt.IndexOf(',') + 1).Trim().ToString();
         string[] splitDt = newDt.Split(" ");
         int monthNumber = GetMonthPosition(splitDt[1]);
         var actual = DateTimeFormatInfo.CurrentInfo.GetMonthName(monthNumber + 1);
 
-        string dateForFormat = $"{dt.Substring(0, dt.IndexOf(",")).Trim()}, {splitDt[0]} {actual} {splitDt[2]}";
+        string dateForFormat = $"{dt.AsSpan(0, dt.IndexOf(',')).Trim()}, {splitDt[0]} {actual} {splitDt[2]}";
 
-        DateTime dateTime = DateTime.ParseExact(dateForFormat, "dddd, d MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        DateTime dateTime = DateTime.ParseExact(dateForFormat, "dddd, d MMMM yyyy", CultureInfo.InvariantCulture);
         return dateTime;
     }
 
