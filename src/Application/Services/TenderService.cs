@@ -143,7 +143,8 @@ public class TenderService : ITenderService
                                 //Contact
                                 var contactNodes = contactsNode.SelectNodes(".//strong");
                                 var contactLine = contactsNode.SelectSingleNode(".//strong");
-                                string contact = contactLine.NextSibling.InnerText.Substring(contactLine.NextSibling.InnerText.IndexOf(" ")).Trim();
+                                string contact = contactLine.NextSibling.InnerText.AsSpan(contactLine.NextSibling.InnerText.IndexOf(' ')).Trim().ToString();
+
                                 string[] contactText = contactsNode.InnerText.Split(":");
                                 string contactNumber = contactText[3];
 
@@ -232,15 +233,6 @@ public class TenderService : ITenderService
         };
         return client;
     }
-
-
-    private class TenderDetails
-    {
-        public string TenderNumber { get; set; } = string.Empty;
-        public string Province { get; set; } = string.Empty;
-
-    }
-
 }
 
 
