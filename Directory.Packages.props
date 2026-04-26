@@ -3,7 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Aspire.Hosting.Azure.KeyVault" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.Azure.KeyVault" Version="13.2.4" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.0" />
     <PackageVersion Include="Esri.ArcGISRuntime" Version="200.8.1" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
