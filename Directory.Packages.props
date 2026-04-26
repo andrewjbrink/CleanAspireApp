@@ -5,7 +5,7 @@
   <ItemGroup>
     <PackageVersion Include="Aspire.Hosting.Azure.KeyVault" Version="13.2.2" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.0" />
-    <PackageVersion Include="Esri.ArcGISRuntime" Version="200.8.1" />
+    <PackageVersion Include="Esri.ArcGISRuntime" Version="300.0.0" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageVersion Include="MailKit" Version="4.16.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.6" />
